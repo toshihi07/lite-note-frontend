@@ -2,48 +2,41 @@ name: Deploy Frontend to S3
 
 on:
   push:
-    branches:
-      - main  # mainブランチにpushされたら実行
+    branches: ["main"]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: "18"
 
-      - name: Install Dependencies
+      - name: Install
         run: npm ci
-        working-directory: frontend
 
-      - name: Build Next.js (Static Export)
-        run: npm run build && npm run export
-        working-directory: frontend
+      - name: Build (Next.js static export)
+        run: |
+          npm run build
+          npm run export
 
-      - name: Configure AWS Credentials
+      - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ap-northeast-1
+          aws-region: ${{ secrets.AWS_REGION || 'ap-northeast-1' }}
 
-      - name: Deploy to S3
-        run: |
-          aws s3 sync frontend/out s3://$S3_BUCKET_NAME --delete
-        env:
-          S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
+      - name: Sync to S3
+        run: aws s3 sync out s3://${{ secrets.FRONTEND_S3_BUCKET }} --delete
 
-      - name: Invalidate CloudFront Cache
+      - name: Invalidate CloudFront
         run: |
           aws cloudfront create-invalidation \
-            --distribution-id $CLOUDFRONT_DIST_ID \
+            --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
             --paths "/*"
-        env:
-          CLOUDFRONT_DIST_ID: ${{ secrets.CLOUDFRONT_DIST_ID }}
-
