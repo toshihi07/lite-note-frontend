@@ -25,9 +25,8 @@ jobs:
           node-version: "18"
           cache: "npm"
 
-      - name: Install deps (include dev)
-        env:
-          NODE_ENV: development
+      # devDependencies も含めてインストール（NODE_ENVは未指定=デフォでdevDepsも入る）
+      - name: Install deps
         run: npm ci
         working-directory: .
 
@@ -35,25 +34,25 @@ jobs:
         run: npx --no-install next --version
         working-directory: .
 
-      - name: Guard - API base URL is set
+      # === ここから API Gateway URL の受け渡しを NEXT_PUBLIC_API_GATEWAY に揃える ===
+      - name: Guard - API gateway URL is set
         env:
-          NEXT_PUBLIC_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
+          NEXT_PUBLIC_API_GATEWAY: ${{ secrets.NEXT_PUBLIC_API_GATEWAY }}
         run: |
-          test -n "$NEXT_PUBLIC_API_BASE_URL" || (echo "ERROR: NEXT_PUBLIC_API_BASE_URL is empty"; exit 1)
+          test -n "$NEXT_PUBLIC_API_GATEWAY" || (echo "ERROR: NEXT_PUBLIC_API_GATEWAY is empty"; exit 1)
         working-directory: .
 
-      # ★ これを追加
       - name: Create .env.production
         run: |
           cat > .env.production << 'EOF'
-          NEXT_PUBLIC_API_BASE_URL=${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
-          API_BASE_URL=${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
+          NEXT_PUBLIC_API_GATEWAY=${{ secrets.NEXT_PUBLIC_API_GATEWAY }}
+          API_GATEWAY=${{ secrets.NEXT_PUBLIC_API_GATEWAY }}
           EOF
         working-directory: .
 
       - name: Build (Next.js static export)
         env:
-          NEXT_PUBLIC_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
+          NEXT_PUBLIC_API_GATEWAY: ${{ secrets.NEXT_PUBLIC_API_GATEWAY }}
         run: |
           npm run build
           npm run export
