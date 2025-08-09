@@ -7,9 +7,6 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: . # ← ここで“必ずルート”に固定する
 
     steps:
       - name: Checkout
@@ -20,6 +17,7 @@ jobs:
           echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
           pwd
           ls -la
+        working-directory: .
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -28,15 +26,18 @@ jobs:
 
       - name: Guard - package.json exists
         run: test -f package.json || (echo "package.json not found in $(pwd)"; exit 1)
+        working-directory: .
 
       - name: Install
         run: npm ci
+        working-directory: .
 
       - name: Build (Next.js static export)
         run: |
           npm run build
           npm run export
           test -d out || (echo "out/ not found after export"; exit 1)
+        working-directory: .
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -47,9 +48,11 @@ jobs:
 
       - name: Sync to S3
         run: aws s3 sync out s3://${{ secrets.FRONTEND_S3_BUCKET }} --delete
+        working-directory: .
 
       - name: Invalidate CloudFront
         run: |
           aws cloudfront create-invalidation \
             --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
             --paths "/*"
+        working-directory: .
