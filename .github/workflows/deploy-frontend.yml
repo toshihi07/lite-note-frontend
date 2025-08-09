@@ -9,15 +9,25 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: .
+        working-directory: . # ← ここで“必ずルート”に固定する
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Debug PWD & list
+        run: |
+          echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
+          pwd
+          ls -la
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "18"
+
+      - name: Guard - package.json exists
+        run: test -f package.json || (echo "package.json not found in $(pwd)"; exit 1)
 
       - name: Install
         run: npm ci
@@ -26,6 +36,7 @@ jobs:
         run: |
           npm run build
           npm run export
+          test -d out || (echo "out/ not found after export"; exit 1)
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
