@@ -25,19 +25,16 @@ jobs:
           node-version: "18"
           cache: "npm"
 
-      # devDependencies を確実に入れる（NextがdevDepsでもOKにする）
       - name: Install deps (include dev)
         env:
           NODE_ENV: development
         run: npm ci
         working-directory: .
 
-      # 念のため next が入ってるか確認
       - name: Check Next installed
         run: npx --no-install next --version
         working-directory: .
 
-      # API URL がCI上で渡っているかガード
       - name: Guard - API base URL is set
         env:
           NEXT_PUBLIC_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
@@ -45,9 +42,17 @@ jobs:
           test -n "$NEXT_PUBLIC_API_BASE_URL" || (echo "ERROR: NEXT_PUBLIC_API_BASE_URL is empty"; exit 1)
         working-directory: .
 
+      # ★ これを追加
+      - name: Create .env.production
+        run: |
+          cat > .env.production << 'EOF'
+          NEXT_PUBLIC_API_BASE_URL=${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
+          API_BASE_URL=${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
+          EOF
+        working-directory: .
+
       - name: Build (Next.js static export)
         env:
-          NODE_ENV: development
           NEXT_PUBLIC_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
         run: |
           npm run build
