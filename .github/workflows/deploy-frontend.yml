@@ -55,7 +55,6 @@ jobs:
           NEXT_PUBLIC_API_GATEWAY: ${{ secrets.NEXT_PUBLIC_API_GATEWAY }}
         run: |
           npm run build
-          npm run export
           test -d out || (echo "out/ not found after export"; exit 1)
         working-directory: .
 
