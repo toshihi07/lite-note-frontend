@@ -47,6 +47,9 @@ jobs:
           cat > .env.production << 'EOF'
           NEXT_PUBLIC_API_GATEWAY=${{ secrets.NEXT_PUBLIC_API_GATEWAY }}
           API_GATEWAY=${{ secrets.NEXT_PUBLIC_API_GATEWAY }}
+          NEXT_PUBLIC_COGNITO_DOMAIN=${{ secrets.NEXT_PUBLIC_COGNITO_DOMAIN }}
+          NEXT_PUBLIC_COGNITO_CLIENT_ID=${{ secrets.NEXT_PUBLIC_COGNITO_CLIENT_ID }}
+          NEXT_PUBLIC_REDIRECT_URI=${{ secrets.NEXT_PUBLIC_REDIRECT_URI }}
           EOF
         working-directory: .
 
