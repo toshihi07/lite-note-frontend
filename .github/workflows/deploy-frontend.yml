@@ -53,6 +53,17 @@ jobs:
           EOF
         working-directory: .
 
+      - name: Guard - Cognito envs are set
+        env:
+          NEXT_PUBLIC_COGNITO_DOMAIN: ${{ secrets.NEXT_PUBLIC_COGNITO_DOMAIN }}
+          NEXT_PUBLIC_COGNITO_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_COGNITO_CLIENT_ID }}
+          NEXT_PUBLIC_REDIRECT_URI: ${{ secrets.NEXT_PUBLIC_REDIRECT_URI }}
+        run: |
+          for k in NEXT_PUBLIC_COGNITO_DOMAIN NEXT_PUBLIC_COGNITO_CLIENT_ID NEXT_PUBLIC_REDIRECT_URI; do
+            v="${!k}"; [ -n "$v" ] || { echo "ERROR: $k is empty"; exit 1; }
+            echo "::notice::$k length=${#v}"
+          done
+
       - name: Build (Next.js static export)
         env:
           NEXT_PUBLIC_API_GATEWAY: ${{ secrets.NEXT_PUBLIC_API_GATEWAY }}
