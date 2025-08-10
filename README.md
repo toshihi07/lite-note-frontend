@@ -97,3 +97,17 @@ S3 同期アップロード
 CloudFront キャッシュ無効化
 
 数分後、CloudFront 経由で新しいUIが反映されます
+
+
+
+
+my-next-app/
+├─ .next/         ← build 時の中間ファイル
+├─ out/           ← ← 静的サイトの完成形（これをS3等にアップ）
+│   ├─ index.html
+│   ├─ todos/index.html
+│   ├─ _next/…
+│   └─ その他ページごとのHTML/CSS/JS
+├─ pages/
+├─ package.json
+└─ next.config.js

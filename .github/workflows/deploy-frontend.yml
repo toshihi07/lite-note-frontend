@@ -69,9 +69,18 @@ jobs:
         run: aws s3 sync out s3://${{ secrets.FRONTEND_S3_BUCKET }} --delete
         working-directory: .
 
+      - name: Guard - CloudFront distribution ID is set
+        env:
+          CF_ID_RAW: ${{ secrets.CLOUDFRONT_DIST_ID}} # ← ここ、あなたが設定した秘密名に合わせる
+        run: |
+          ID="${CF_ID_RAW//[$'\t\r\n ']/}"   # 余分な空白・改行を除去
+          echo "::notice::CF_ID length = ${#ID}"  # 値はマスクされるが長さは見える
+          test -n "$ID" || { echo "ERROR: CLOUDFRONT_DIST_IDis empty"; exit 1; }
+          echo "CF_ID=$ID" >> "$GITHUB_ENV"
+
       - name: Invalidate CloudFront
         run: |
           aws cloudfront create-invalidation \
-            --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
+            --distribution-id "$CF_ID" \
             --paths "/*"
         working-directory: .
